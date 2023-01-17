@@ -17,7 +17,7 @@ static U32 const HLOG = 10;
 static U32 const MLS = 4;
 static U32 const BADIDX = 0xffffffff;
 
-static size_t simpleExternalMatchFinder(
+size_t simpleExternalMatchFinder(
   void* externalMatchState,
   ZSTD_Sequence* outSeqs, size_t outSeqsCapacity,
   const void* src, size_t srcSize,
