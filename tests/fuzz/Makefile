@@ -36,7 +36,7 @@ CONTRIBDIR = ../../contrib
 
 FUZZ_CPPFLAGS := -I$(ZSTDDIR) -I$(ZSTDDIR)/common -I$(ZSTDDIR)/compress \
 	-I$(ZSTDDIR)/dictBuilder -I$(ZSTDDIR)/deprecated -I$(ZSTDDIR)/legacy \
-	-I$(CONTRIBDIR)/seekable_format -I$(PRGDIR) -DZSTD_MULTITHREAD -DZSTD_LEGACY_SUPPORT=1 $(CPPFLAGS)
+	-I$(CONTRIBDIR)/seekable_format -I$(PRGDIR) -I../ -DZSTD_MULTITHREAD -DZSTD_LEGACY_SUPPORT=1 $(CPPFLAGS) # @nocommit ../ needs cleanup
 FUZZ_EXTRA_FLAGS := -Wall -Wextra -Wcast-qual -Wcast-align -Wshadow \
 	-Wstrict-aliasing=1 -Wswitch-enum -Wdeclaration-after-statement \
 	-Wstrict-prototypes -Wundef \
@@ -52,8 +52,8 @@ FUZZ_TARGET_FLAGS = $(FUZZ_CPPFLAGS) $(FUZZ_CXXFLAGS) $(FUZZ_LDFLAGS)
 
 FUZZ_ROUND_TRIP_FLAGS := -DFUZZING_ASSERT_VALID_SEQUENCE
 
-FUZZ_HEADERS := fuzz_helpers.h fuzz.h zstd_helpers.h fuzz_data_producer.h external_matchfinder.h
-FUZZ_SRC := $(PRGDIR)/util.c ./fuzz_helpers.c ./zstd_helpers.c ./fuzz_data_producer.c ./external_matchfinder.c
+FUZZ_HEADERS := fuzz_helpers.h fuzz.h zstd_helpers.h fuzz_data_producer.h
+FUZZ_SRC := $(PRGDIR)/util.c ./fuzz_helpers.c ./zstd_helpers.c ./fuzz_data_producer.c ~/zstd/tests/external_matchfinder.c # @nocommit needs cleanup
 
 SEEKABLE_HEADERS = $(CONTRIBDIR)/seekable_format/zstd_seekable.h
 SEEKABLE_OBJS = $(CONTRIBDIR)/seekable_format/zstdseek_compress.c $(CONTRIBDIR)/seekable_format/zstdseek_decompress.c
@@ -79,8 +79,9 @@ FUZZ_D_OBJ4 := $(subst $(ZSTDDIR)/dictBuilder/,d_lib_dictBuilder_,$(FUZZ_D_OBJ3)
 FUZZ_D_OBJ5 := $(subst $(ZSTDDIR)/legacy/,d_lib_legacy_,$(FUZZ_D_OBJ4))
 FUZZ_D_OBJ6 := $(subst $(PRGDIR)/,d_prg_,$(FUZZ_D_OBJ5))
 FUZZ_D_OBJ7 := $(subst $\./,d_fuzz_,$(FUZZ_D_OBJ6))
-FUZZ_D_OBJ8 := $(FUZZ_D_OBJ7:.c=.o)
-FUZZ_DECOMPRESS_OBJ := $(FUZZ_D_OBJ8:.S=.o)
+FUZZ_D_OBJ8 := $(subst /home/embg/zstd/tests/,d_tests_,$(FUZZ_D_OBJ7))
+FUZZ_D_OBJ9 := $(FUZZ_D_OBJ8:.c=.o)
+FUZZ_DECOMPRESS_OBJ := $(FUZZ_D_OBJ9:.S=.o)
 
 FUZZ_RT_OBJ1 := $(subst $(ZSTDDIR)/common/,rt_lib_common_,$(FUZZ_SRC))
 FUZZ_RT_OBJ2 := $(subst $(ZSTDDIR)/compress/,rt_lib_compress_,$(FUZZ_RT_OBJ1))
@@ -89,8 +90,9 @@ FUZZ_RT_OBJ4 := $(subst $(ZSTDDIR)/dictBuilder/,rt_lib_dictBuilder_,$(FUZZ_RT_OB
 FUZZ_RT_OBJ5 := $(subst $(ZSTDDIR)/legacy/,rt_lib_legacy_,$(FUZZ_RT_OBJ4))
 FUZZ_RT_OBJ6 := $(subst $(PRGDIR)/,rt_prg_,$(FUZZ_RT_OBJ5))
 FUZZ_RT_OBJ7 := $(subst $\./,rt_fuzz_,$(FUZZ_RT_OBJ6))
-FUZZ_RT_OBJ8 := $(FUZZ_RT_OBJ7:.c=.o)
-FUZZ_ROUND_TRIP_OBJ := $(FUZZ_RT_OBJ8:.S=.o)
+FUZZ_RT_OBJ8 := $(subst /home/embg/zstd/tests/,rt_tests_,$(FUZZ_RT_OBJ7))
+FUZZ_RT_OBJ9 := $(FUZZ_RT_OBJ8:.c=.o)
+FUZZ_ROUND_TRIP_OBJ := $(FUZZ_RT_OBJ9:.S=.o)
 
 .PHONY: default all clean cleanall
 
@@ -143,6 +145,9 @@ rt_prg_%.o: $(PRGDIR)/%.c
 rt_fuzz_%.o: %.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $(FUZZ_ROUND_TRIP_FLAGS) $< -c -o $@
 
+rt_tests_%.o: ../%.c
+	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $(FUZZ_ROUND_TRIP_FLAGS) $< -c -o $@
+
 d_lib_common_%.o: $(ZSTDDIR)/common/%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
 
@@ -165,6 +170,9 @@ d_prg_%.o: $(PRGDIR)/%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
 
 d_fuzz_%.o: %.c
+	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
+
+d_tests_%.o: ../%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
 
 simple_round_trip: $(FUZZ_HEADERS) $(FUZZ_ROUND_TRIP_OBJ) rt_fuzz_simple_round_trip.o

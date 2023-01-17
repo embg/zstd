@@ -134,7 +134,7 @@ void FUZZ_setRandomParameters(ZSTD_CCtx *cctx, size_t srcSize, FUZZ_dataProducer
       setRand(cctx, ZSTD_c_targetCBlockSize, ZSTD_TARGETCBLOCKSIZE_MIN, ZSTD_TARGETCBLOCKSIZE_MAX, producer);
     }
 
-    if (1 || FUZZ_dataProducer_uint32Range(producer, 0, 1) == 0) { // @nocommit 10
+    if (FUZZ_dataProducer_uint32Range(producer, 0, 10) == 0) {
         setExternalMatchFinderParams(cctx, producer);
     }
 }
