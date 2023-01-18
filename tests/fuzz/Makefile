@@ -34,10 +34,8 @@ ZSTDDIR = ../../lib
 PRGDIR = ../../programs
 CONTRIBDIR = ../../contrib
 
-# TODO(embg)
-# Make this configurable so anybody can plug in their own matchfinder library.
-# Requires some changes in zstd_helpers.c and matchfinder.*, so let's do it in a future PR.
 MATCHFINDER_DIR = $(CONTRIBDIR)/externalMatchfinder
+MATCHFINDER_SRC = $(MATCHFINDER_DIR)/matchfinder.c
 
 FUZZ_CPPFLAGS := -I$(ZSTDDIR) -I$(ZSTDDIR)/common -I$(ZSTDDIR)/compress \
 	-I$(ZSTDDIR)/dictBuilder -I$(ZSTDDIR)/deprecated -I$(ZSTDDIR)/legacy \
@@ -76,7 +74,7 @@ FUZZ_SRC       := \
 	$(ZSTDCOMP_SRC) \
 	$(ZSTDDICT_SRC) \
 	$(ZSTDLEGACY_SRC) \
-	$(MATCHFINDER_DIR)/matchfinder.c
+	$(MATCHFINDER_SRC)
 FUZZ_SRC := $(sort $(wildcard $(FUZZ_SRC)))
 
 FUZZ_D_OBJ1 := $(subst $(ZSTDDIR)/common/,d_lib_common_,$(FUZZ_SRC))
@@ -85,7 +83,7 @@ FUZZ_D_OBJ3 := $(subst $(ZSTDDIR)/decompress/,d_lib_decompress_,$(FUZZ_D_OBJ2))
 FUZZ_D_OBJ4 := $(subst $(ZSTDDIR)/dictBuilder/,d_lib_dictBuilder_,$(FUZZ_D_OBJ3))
 FUZZ_D_OBJ5 := $(subst $(ZSTDDIR)/legacy/,d_lib_legacy_,$(FUZZ_D_OBJ4))
 FUZZ_D_OBJ6 := $(subst $(PRGDIR)/,d_prg_,$(FUZZ_D_OBJ5))
-FUZZ_D_OBJ7 := $(subst $(MATCHFINDER_DIR)/matchfinder.c,d_matchfinder.o,$(FUZZ_D_OBJ6))
+FUZZ_D_OBJ7 := $(subst $(MATCHFINDER_DIR)/,d_matchfinder_,$(FUZZ_D_OBJ6))
 FUZZ_D_OBJ8 := $(subst $\./,d_fuzz_,$(FUZZ_D_OBJ7))
 FUZZ_D_OBJ9 := $(FUZZ_D_OBJ8:.c=.o)
 FUZZ_DECOMPRESS_OBJ := $(FUZZ_D_OBJ9:.S=.o)
@@ -96,7 +94,7 @@ FUZZ_RT_OBJ3 := $(subst $(ZSTDDIR)/decompress/,rt_lib_decompress_,$(FUZZ_RT_OBJ2
 FUZZ_RT_OBJ4 := $(subst $(ZSTDDIR)/dictBuilder/,rt_lib_dictBuilder_,$(FUZZ_RT_OBJ3))
 FUZZ_RT_OBJ5 := $(subst $(ZSTDDIR)/legacy/,rt_lib_legacy_,$(FUZZ_RT_OBJ4))
 FUZZ_RT_OBJ6 := $(subst $(PRGDIR)/,rt_prg_,$(FUZZ_RT_OBJ5))
-FUZZ_RT_OBJ7 := $(subst $(MATCHFINDER_DIR)/matchfinder.c,rt_matchfinder.o,$(FUZZ_RT_OBJ6))
+FUZZ_RT_OBJ7 := $(subst $(MATCHFINDER_DIR)/,rt_matchfinder_,$(FUZZ_RT_OBJ6))
 FUZZ_RT_OBJ8 := $(subst $\./,rt_fuzz_,$(FUZZ_RT_OBJ7))
 FUZZ_RT_OBJ9 := $(FUZZ_RT_OBJ8:.c=.o)
 FUZZ_ROUND_TRIP_OBJ := $(FUZZ_RT_OBJ9:.S=.o)
@@ -152,7 +150,7 @@ rt_prg_%.o: $(PRGDIR)/%.c
 rt_fuzz_%.o: %.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $(FUZZ_ROUND_TRIP_FLAGS) $< -c -o $@
 
-rt_matchfinder.o: $(MATCHFINDER_DIR)/matchfinder.c
+rt_matchfinder_%.o: $(MATCHFINDER_DIR)/%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $(FUZZ_ROUND_TRIP_FLAGS) $< -c -o $@
 
 d_lib_common_%.o: $(ZSTDDIR)/common/%.c
@@ -179,7 +177,7 @@ d_prg_%.o: $(PRGDIR)/%.c
 d_fuzz_%.o: %.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
 
-d_matchfinder.o: $(MATCHFINDER_DIR)/matchfinder.c
+d_matchfinder_%.o: $(MATCHFINDER_DIR)/%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
 
 simple_round_trip: $(FUZZ_HEADERS) $(FUZZ_ROUND_TRIP_OBJ) rt_fuzz_simple_round_trip.o
