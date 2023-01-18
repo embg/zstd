@@ -56,6 +56,7 @@ FUZZ_ROUND_TRIP_FLAGS := -DFUZZING_ASSERT_VALID_SEQUENCE
 FUZZ_HEADERS := fuzz_helpers.h fuzz.h zstd_helpers.h fuzz_data_producer.h
 FUZZ_SRC := $(PRGDIR)/util.c ./fuzz_helpers.c ./zstd_helpers.c ./fuzz_data_producer.c ~/zstd/tests/external_matchfinder.c # @nocommit needs cleanup
 
+$(info $$FUZZ_SRC is [${FUZZ_SRC}])
 SEEKABLE_HEADERS = $(CONTRIBDIR)/seekable_format/zstd_seekable.h
 SEEKABLE_OBJS = $(CONTRIBDIR)/seekable_format/zstdseek_compress.c $(CONTRIBDIR)/seekable_format/zstdseek_decompress.c
 
@@ -71,7 +72,10 @@ FUZZ_SRC       := \
 	$(ZSTDCOMP_SRC) \
 	$(ZSTDDICT_SRC) \
 	$(ZSTDLEGACY_SRC)
+
+$(info $$FUZZ_SRC is [${FUZZ_SRC}])
 FUZZ_SRC := $(sort $(wildcard $(FUZZ_SRC)))
+$(info $$FUZZ_SRC is [${FUZZ_SRC}])
 
 FUZZ_D_OBJ1 := $(subst $(ZSTDDIR)/common/,d_lib_common_,$(FUZZ_SRC))
 FUZZ_D_OBJ2 := $(subst $(ZSTDDIR)/compress/,d_lib_compress_,$(FUZZ_D_OBJ1))
