@@ -33,10 +33,11 @@ include $(LIBZSTD)/libzstd.mk
 ZSTDDIR = ../../lib
 PRGDIR = ../../programs
 CONTRIBDIR = ../../contrib
+TESTDIR = ../
 
 FUZZ_CPPFLAGS := -I$(ZSTDDIR) -I$(ZSTDDIR)/common -I$(ZSTDDIR)/compress \
 	-I$(ZSTDDIR)/dictBuilder -I$(ZSTDDIR)/deprecated -I$(ZSTDDIR)/legacy \
-	-I$(CONTRIBDIR)/seekable_format -I$(PRGDIR) -I../ -DZSTD_MULTITHREAD -DZSTD_LEGACY_SUPPORT=1 $(CPPFLAGS) # @nocommit ../ needs cleanup
+	-I$(CONTRIBDIR)/seekable_format -I$(PRGDIR) -I$(TESTDIR) -DZSTD_MULTITHREAD -DZSTD_LEGACY_SUPPORT=1 $(CPPFLAGS) # @nocommit ../ needs cleanup
 FUZZ_EXTRA_FLAGS := -Wall -Wextra -Wcast-qual -Wcast-align -Wshadow \
 	-Wstrict-aliasing=1 -Wswitch-enum -Wdeclaration-after-statement \
 	-Wstrict-prototypes -Wundef \
@@ -82,6 +83,7 @@ FUZZ_D_OBJ7 := $(subst $\./,d_fuzz_,$(FUZZ_D_OBJ6))
 FUZZ_D_OBJ8 := $(subst /home/embg/zstd/tests/,d_tests_,$(FUZZ_D_OBJ7))
 FUZZ_D_OBJ9 := $(FUZZ_D_OBJ8:.c=.o)
 FUZZ_DECOMPRESS_OBJ := $(FUZZ_D_OBJ9:.S=.o)
+$(info $$FUZZ_DECOMPRESS_OBJ is [${FUZZ_DECOMPRESS_OBJ}])
 
 FUZZ_RT_OBJ1 := $(subst $(ZSTDDIR)/common/,rt_lib_common_,$(FUZZ_SRC))
 FUZZ_RT_OBJ2 := $(subst $(ZSTDDIR)/compress/,rt_lib_compress_,$(FUZZ_RT_OBJ1))
@@ -93,6 +95,7 @@ FUZZ_RT_OBJ7 := $(subst $\./,rt_fuzz_,$(FUZZ_RT_OBJ6))
 FUZZ_RT_OBJ8 := $(subst /home/embg/zstd/tests/,rt_tests_,$(FUZZ_RT_OBJ7))
 FUZZ_RT_OBJ9 := $(FUZZ_RT_OBJ8:.c=.o)
 FUZZ_ROUND_TRIP_OBJ := $(FUZZ_RT_OBJ9:.S=.o)
+$(info $$FUZZ_ROUND_TRIP_OBJ is [${FUZZ_ROUND_TRIP_OBJ}])
 
 .PHONY: default all clean cleanall
 
@@ -248,7 +251,7 @@ corpora: $(patsubst %,corpora/%,$(FUZZ_TARGETS))
 .PHONY: seedcorpora
 seedcorpora: $(patsubst %,corpora/%_seed_corpus.zip,$(FUZZ_TARGETS))
 
-regressiontest: corpora
+regressiontest: #corpora
 	CC="$(CC)" CXX="$(CXX)" CFLAGS="$(CFLAGS)" CXXFLAGS="$(CXXFLAGS)" LDFLAGS="$(LDFLAGS)" $(PYTHON) ./fuzz.py build all
 	$(PYTHON) ./fuzz.py regression all
 

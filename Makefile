@@ -287,7 +287,7 @@ uasanregressiontest:
 	$(MAKE) -C $(FUZZDIR) regressiontest CC=clang CXX=clang++ CFLAGS="-O3 -fsanitize=address,undefined" CXXFLAGS="-O3 -fsanitize=address,undefined"
 
 msanregressiontest:
-	$(MAKE) -C $(FUZZDIR) regressiontest CC=clang CXX=clang++ CFLAGS="-O3 -fsanitize=memory" CXXFLAGS="-O3 -fsanitize=memory"
+	$(MAKE) -C $(FUZZDIR) regressiontest CC=clang-14 CXX=clang++-14 CFLAGS="-O3 -fsanitize=memory" CXXFLAGS="-O3 -fsanitize=memory"
 
 update_regressionResults : REGRESS_RESULTS_DIR := /tmp/regress_results_dir/
 update_regressionResults:
