@@ -136,6 +136,8 @@ void FUZZ_setRandomParameters(ZSTD_CCtx *cctx, size_t srcSize, FUZZ_dataProducer
 
     if (FUZZ_dataProducer_uint32Range(producer, 0, 10) == 0) {
         setExternalMatchFinderParams(cctx, producer);
+    } else {
+        ZSTD_registerExternalMatchFinder(cctx, NULL, NULL);
     }
 }
 
