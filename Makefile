@@ -281,10 +281,10 @@ arm-ppc-compilation:
 	$(MAKE) -C $(PRGDIR) clean zstd CC=powerpc-linux-gnu-gcc QEMU_SYS=qemu-ppc64-static ZSTDRTTEST= MOREFLAGS="-m64 -static"
 
 regressiontest:
-	$(MAKE) -C $(FUZZDIR) regressiontest
+	V=1 $(MAKE) -C $(FUZZDIR) regressiontest V=1
 
 uasanregressiontest:
-	$(MAKE) -C $(FUZZDIR) regressiontest CC=clang CXX=clang++ CFLAGS="-O3 -fsanitize=address,undefined" CXXFLAGS="-O3 -fsanitize=address,undefined"
+	V=1 $(MAKE) -C $(FUZZDIR) regressiontest CC=clang CXX=clang++ CFLAGS="-O3 -fsanitize=address,undefined" CXXFLAGS="-O3 -fsanitize=address,undefined" V=1
 
 msanregressiontest:
 	$(MAKE) -C $(FUZZDIR) regressiontest CC=clang-14 CXX=clang++-14 CFLAGS="-O3 -fsanitize=memory" CXXFLAGS="-O3 -fsanitize=memory"
