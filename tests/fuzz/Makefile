@@ -36,7 +36,7 @@ CONTRIBDIR = ../../contrib
 
 FUZZ_CPPFLAGS := -I$(ZSTDDIR) -I$(ZSTDDIR)/common -I$(ZSTDDIR)/compress \
 	-I$(ZSTDDIR)/dictBuilder -I$(ZSTDDIR)/deprecated -I$(ZSTDDIR)/legacy \
-	-I$(CONTRIBDIR)/seekable_format -I$(PRGDIR) -DZSTD_MULTITHREAD -DZSTD_LEGACY_SUPPORT=1 $(CPPFLAGS)
+	-I$(CONTRIBDIR)/seekable_format -I$(PRGDIR) I../ -DZSTD_MULTITHREAD -DZSTD_LEGACY_SUPPORT=1 $(CPPFLAGS)
 FUZZ_EXTRA_FLAGS := -Wall -Wextra -Wcast-qual -Wcast-align -Wshadow \
 	-Wstrict-aliasing=1 -Wswitch-enum -Wdeclaration-after-statement \
 	-Wstrict-prototypes -Wundef \
@@ -140,8 +140,8 @@ rt_lib_legacy_%.o: $(ZSTDDIR)/legacy/%.c
 rt_prg_%.o: $(PRGDIR)/%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $(FUZZ_ROUND_TRIP_FLAGS) $< -c -o $@
 
-rt_fuzz_%.o: %.c
-	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $(FUZZ_ROUND_TRIP_FLAGS) $< -c -o $@
+rt_fuzz_%.o: %.c external_matchfinder.o
+	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $(FUZZ_ROUND_TRIP_FLAGS) $< external_matchfinder.o -c -o $@
 
 d_lib_common_%.o: $(ZSTDDIR)/common/%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
@@ -164,11 +164,11 @@ d_lib_legacy_%.o: $(ZSTDDIR)/legacy/%.c
 d_prg_%.o: $(PRGDIR)/%.c
 	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
 
-d_fuzz_%.o: %.c
-	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
+d_fuzz_%.o: %.c external_matchfinder.o
+	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< external_matchfinder.o -c -o $@
 
-#external_matchfinder.o: ../external_matchfinder.c
-#	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
+external_matchfinder.o: ../external_matchfinder.c
+	$(CC) $(FUZZ_CPPFLAGS) $(FUZZ_CFLAGS) $< -c -o $@
 
 simple_round_trip: $(FUZZ_HEADERS) $(FUZZ_ROUND_TRIP_OBJ) rt_fuzz_simple_round_trip.o
 	$(CXX) $(FUZZ_TARGET_FLAGS) $(FUZZ_ROUND_TRIP_OBJ) rt_fuzz_simple_round_trip.o $(LIB_FUZZING_ENGINE) -o $@
