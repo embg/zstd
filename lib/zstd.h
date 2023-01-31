@@ -2147,6 +2147,9 @@ ZSTDLIB_STATIC_API size_t ZSTD_CCtx_refPrefix_advanced(ZSTD_CCtx* cctx, const vo
  *
  * Controlled by ZSTD_paramSwitch_e enum. Default is ZSTD_ps_auto, which means
  * zstd will decide whether to enable based on compression level.
+ *
+ * Note: for now, this param only has an effect if ZSTD_c_blockDelimiters is
+ * set to ZSTD_sf_explicitBlockDelimiters. That may change in the future.
  */
 #define ZSTD_c_fastExternalSequenceParsing ZSTD_c_experimentalParam19
 
