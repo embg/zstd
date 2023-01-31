@@ -6334,7 +6334,7 @@ ZSTD_copySequencesToSeqStoreExplicitBlockDelim(ZSTD_CCtx* cctx,
     }
 
     /* If we skipped repcode search while parsing, we need to update repcodes now */
-    if (parseFast == ZSTD_ps_enable) {
+    if (parseFast == ZSTD_ps_enable && idx > 0) {
         U32* const rep = updatedRepcodes.rep;
         U32 lastSeqIdx = idx - 1; /* index of last non-block-delimiter sequence */
 
