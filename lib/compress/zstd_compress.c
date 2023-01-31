@@ -293,9 +293,9 @@ static size_t ZSTD_resolveMaxBlockSize(size_t maxBlockSize) {
 static ZSTD_paramSwitch_e ZSTD_resolveFastExternalSequenceParsing(ZSTD_paramSwitch_e value, int cLevel) {
     if (value != ZSTD_ps_auto) return value;
     if (cLevel < 10) {
-        return ZSTD_ps_disable;
-    } else {
         return ZSTD_ps_enable;
+    } else {
+        return ZSTD_ps_disable;
     }
 }
 
@@ -6343,15 +6343,16 @@ ZSTD_copySequencesToSeqStoreExplicitBlockDelim(ZSTD_CCtx* cctx,
         if (lastSeqIdx >= startIdx + 2) {
             rep[2] = inSeqs[lastSeqIdx - 2].offset;
             rep[1] = inSeqs[lastSeqIdx - 1].offset;
-            rep[0] = inSeqs[lastSeqIdx - 0].offset;
+            rep[0] = inSeqs[lastSeqIdx].offset;
         } else if (lastSeqIdx == startIdx + 1) {
             rep[2] = rep[0];
             rep[1] = inSeqs[lastSeqIdx - 1].offset;
-            rep[0] = inSeqs[lastSeqIdx - 0].offset;
-        } else if (lastSeqIdx == startIdx) {
+            rep[0] = inSeqs[lastSeqIdx].offset;
+        } else {
+            assert(lastSeqIdx == startIdx);
             rep[2] = rep[1];
             rep[1] = rep[0];
-            rep[0] = inSeqs[lastSeqIdx - 0].offset;
+            rep[0] = inSeqs[lastSeqIdx].offset;
         }
     }
 
