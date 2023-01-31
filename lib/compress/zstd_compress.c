@@ -290,7 +290,7 @@ static size_t ZSTD_resolveMaxBlockSize(size_t maxBlockSize) {
     }
 }
 
-static size_t ZSTD_resolveExternalSequenceParsing(ZSTD_paramSwitch_e value, int cLevel) {
+static ZSTD_paramSwitch_e ZSTD_resolveFastExternalSequenceParsing(ZSTD_paramSwitch_e value, int cLevel) {
     if (value != ZSTD_ps_auto) return value;
     if (cLevel < 10) {
         return ZSTD_ps_disable;
@@ -324,8 +324,8 @@ static ZSTD_CCtx_params ZSTD_makeCCtxParamsFromCParams(
     cctxParams.useRowMatchFinder = ZSTD_resolveRowMatchFinderMode(cctxParams.useRowMatchFinder, &cParams);
     cctxParams.validateSequences = ZSTD_resolveExternalSequenceValidation(cctxParams.validateSequences);
     cctxParams.maxBlockSize = ZSTD_resolveMaxBlockSize(cctxParams.maxBlockSize);
-    cctxParams.fastExternalSequenceParsing = ZSTD_resolveExternalSequenceParsing(cctxParams.fastExternalSequenceParsing,
-                                                                                 cctxParams.compressionLevel);
+    cctxParams.fastExternalSequenceParsing = ZSTD_resolveFastExternalSequenceParsing(cctxParams.fastExternalSequenceParsing,
+                                                                                     cctxParams.compressionLevel);
     assert(!ZSTD_checkCParams(cParams));
     return cctxParams;
 }
@@ -392,8 +392,7 @@ ZSTD_CCtxParams_init_internal(ZSTD_CCtx_params* cctxParams,
     cctxParams->ldmParams.enableLdm = ZSTD_resolveEnableLdm(cctxParams->ldmParams.enableLdm, &params->cParams);
     cctxParams->validateSequences = ZSTD_resolveExternalSequenceValidation(cctxParams->validateSequences);
     cctxParams->maxBlockSize = ZSTD_resolveMaxBlockSize(cctxParams->maxBlockSize);
-    cctxParams->fastExternalSequenceParsing = ZSTD_resolveExternalSequenceParsing(cctxParams->fastExternalSequenceParsing,
-                                                                                  compressionLevel);
+    cctxParams->fastExternalSequenceParsing = ZSTD_resolveFastExternalSequenceParsing(cctxParams->fastExternalSequenceParsing, compressionLevel);
     DEBUGLOG(4, "ZSTD_CCtxParams_init_internal: useRowMatchFinder=%d, useBlockSplitter=%d ldm=%d",
                 cctxParams->useRowMatchFinder, cctxParams->useBlockSplitter, cctxParams->ldmParams.enableLdm);
 }
@@ -6029,7 +6028,7 @@ static size_t ZSTD_CCtx_init_compressStream2(ZSTD_CCtx* cctx,
     params.useRowMatchFinder = ZSTD_resolveRowMatchFinderMode(params.useRowMatchFinder, &params.cParams);
     params.validateSequences = ZSTD_resolveExternalSequenceValidation(params.validateSequences);
     params.maxBlockSize = ZSTD_resolveMaxBlockSize(params.maxBlockSize);
-    params.fastExternalSequenceParsing = ZSTD_resolveExternalSequenceParsing(params.fastExternalSequenceParsing, params.compressionLevel);
+    params.fastExternalSequenceParsing = ZSTD_resolveFastExternalSequenceParsing(params.fastExternalSequenceParsing, params.compressionLevel);
 
 #ifdef ZSTD_MULTITHREAD
     /* If external matchfinder is enabled, make sure to fail before checking job size (for consistency) */
