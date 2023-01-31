@@ -501,7 +501,8 @@ typedef enum {
      ZSTD_c_experimentalParam15=1012,
      ZSTD_c_experimentalParam16=1013,
      ZSTD_c_experimentalParam17=1014,
-     ZSTD_c_experimentalParam18=1015
+     ZSTD_c_experimentalParam18=1015,
+     ZSTD_c_experimentalParam19=1016
 } ZSTD_cParameter;
 
 typedef struct {
@@ -2126,17 +2127,28 @@ ZSTDLIB_STATIC_API size_t ZSTD_CCtx_refPrefix_advanced(ZSTD_CCtx* cctx, const vo
  * documentation (below) before setting this parameter. */
 #define ZSTD_c_enableMatchFinderFallback ZSTD_c_experimentalParam17
 
-/*  ZSTD_c_maxBlockSize
- *  Allowed values are between 1KB and ZSTD_BLOCKSIZE_MAX (128KB).
- *  The default is ZSTD_BLOCKSIZE_MAX, and setting to 0 will set to the default.
+/* ZSTD_c_maxBlockSize
+ * Allowed values are between 1KB and ZSTD_BLOCKSIZE_MAX (128KB).
+ * The default is ZSTD_BLOCKSIZE_MAX, and setting to 0 will set to the default.
  *
- *  This parameter can be used to set an upper bound on the blocksize
- *  that overrides the default ZSTD_BLOCKSIZE_MAX. It cannot be used to set upper
- *  bounds greater than ZSTD_BLOCKSIZE_MAX or bounds lower than 1KB (will make
- *  compressBound() innacurate). Only currently meant to be used for testing.
+ * This parameter can be used to set an upper bound on the blocksize
+ * that overrides the default ZSTD_BLOCKSIZE_MAX. It cannot be used to set upper
+ * bounds greater than ZSTD_BLOCKSIZE_MAX or bounds lower than 1KB (will make
+ * compressBound() innacurate). Only currently meant to be used for testing.
  *
  */
 #define ZSTD_c_maxBlockSize ZSTD_c_experimentalParam18
+
+/* ZSTD_c_fastExternalSequenceParsing
+ * Enables optimizations which sacrifice a little bit of compression ratio for
+ * significant improvements in external sequence parsing speed. This is useful
+ * for very fast external matchfinders, to ensure sequence parsing is not a
+ * bottleneck.
+ *
+ * Controlled by ZSTD_paramSwitch_e enum. Default is ZSTD_ps_auto, which means
+ * zstd will decide whether to enable based on compression level.
+ */
+#define ZSTD_c_fastExternalSequenceParsing ZSTD_c_experimentalParam19
 
 /*! ZSTD_CCtx_getParameter() :
  *  Get the requested compression parameter value, selected by enum ZSTD_cParameter,
