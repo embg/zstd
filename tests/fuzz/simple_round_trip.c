@@ -22,6 +22,7 @@
 #include "fuzz_helpers.h"
 #include "zstd_helpers.h"
 #include "fuzz_data_producer.h"
+#include "fuzz_third_party_seq_prod.h"
 
 static ZSTD_CCtx *cctx = NULL;
 static ZSTD_DCtx *dctx = NULL;
@@ -133,6 +134,7 @@ int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
     void* rBuf = FUZZ_malloc(rBufSize);
     size_t cBufSize = ZSTD_compressBound(size);
     void* cBuf;
+    FUZZ_SEQ_PROD_SETUP;
 
     /* Give a random portion of src data to the producer, to use for
     parameter generation. The rest will be used for (de)compression */
@@ -157,6 +159,8 @@ int LLVMFuzzerTestOneInput(const uint8_t *src, size_t size)
     }
 
     roundTripTest(rBuf, rBufSize, cBuf, cBufSize, src, size, producer);
+
+    FUZZ_SEQ_PROD_TEARDOWN;
     free(rBuf);
     free(cBuf);
     FUZZ_dataProducer_free(producer);

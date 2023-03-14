@@ -45,6 +45,13 @@ typedef struct {
  */
 FUZZ_dict_t FUZZ_train(void const* src, size_t srcSize, FUZZ_dataProducer_t *producer);
 
+#ifdef FUZZ_THIRD_PARTY_SEQ_PROD
+/* Only mutated at the top of LLVMFuzzerTestOneInput(), where we know the process
+ * is single-threaded: https://llvm.org/docs/LibFuzzer.html#parallel-fuzzing
+ */
+extern void* FUZZ_seqProdState;
+#endif
+
 #ifdef __cplusplus
 }
 #endif
