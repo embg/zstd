@@ -37,6 +37,7 @@ static size_t roundTripTest(void *result, size_t resultCapacity,
     size_t cSize;
 
     FUZZ_setRandomParameters(cctx, srcSize, producer);
+    FUZZ_copyFormatBit(cctx, dctx);
     /* Disable checksum so we can use sizes smaller than compress bound. */
     FUZZ_ZASSERT(ZSTD_CCtx_setParameter(cctx, ZSTD_c_checksumFlag, 0));
     if (refPrefix)

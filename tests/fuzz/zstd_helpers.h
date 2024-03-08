@@ -45,6 +45,9 @@ typedef struct {
  */
 FUZZ_dict_t FUZZ_train(void const* src, size_t srcSize, FUZZ_dataProducer_t *producer);
 
+/* Set format bit on DCtx according to the existing CCtx setting */
+void FUZZ_copyFormatBit(ZSTD_CCtx *src, ZSTD_DCtx *dst);
+
 #ifdef FUZZ_THIRD_PARTY_SEQ_PROD
 extern void* FUZZ_seqProdState;
 #endif

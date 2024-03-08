@@ -30,6 +30,13 @@ static void set(ZSTD_CCtx *cctx, ZSTD_cParameter param, int value)
     FUZZ_ZASSERT(ZSTD_CCtx_setParameter(cctx, param, value));
 }
 
+void FUZZ_copyFormatBit(ZSTD_CCtx *src, ZSTD_DCtx *dst)
+{
+    ZSTD_format_e format;
+    FUZZ_ZASSERT(ZSTD_CCtx_getParameter(src, ZSTD_c_format, &format));
+    FUZZ_ZASSERT(ZSTD_DCtx_setParameter(dst, ZSTD_d_format, format));
+}
+
 static unsigned produceParamValue(unsigned min, unsigned max,
                                   FUZZ_dataProducer_t *producer) {
     return FUZZ_dataProducer_uint32Range(producer, min, max);
@@ -144,6 +151,7 @@ void FUZZ_setRandomParameters(ZSTD_CCtx *cctx, size_t srcSize, FUZZ_dataProducer
     setRand(cctx, ZSTD_c_deterministicRefPrefix, 0, 1, producer);
     setRand(cctx, ZSTD_c_prefetchCDictTables, 0, 2, producer);
     setRand(cctx, ZSTD_c_maxBlockSize, ZSTD_BLOCKSIZE_MAX_MIN, ZSTD_BLOCKSIZE_MAX, producer);
+    setRand(cctx, ZSTD_c_format, ZSTD_f_zstd1, ZSTD_f_zstd1_magicless, producer);
     setRand(cctx, ZSTD_c_validateSequences, 0, 1, producer);
     setRand(cctx, ZSTD_c_searchForExternalRepcodes, 0, 2, producer);
     if (FUZZ_dataProducer_uint32Range(producer, 0, 1) == 0) {

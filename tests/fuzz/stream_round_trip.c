@@ -63,6 +63,7 @@ static size_t compress(uint8_t *dst, size_t capacity,
     size_t dstSize = 0;
     ZSTD_CCtx_reset(cctx, ZSTD_reset_session_only);
     FUZZ_setRandomParameters(cctx, srcSize, producer);
+    FUZZ_copyFormatBit(cctx, dctx);
     int maxBlockSize;
     FUZZ_ZASSERT(ZSTD_CCtx_getParameter(cctx, ZSTD_c_maxBlockSize, &maxBlockSize));
 
@@ -95,6 +96,7 @@ static size_t compress(uint8_t *dst, size_t capacity,
                         if (FUZZ_dataProducer_uint32Range(producer, 0, 7) == 0) {
                             size_t const remaining = in.size - in.pos;
                             FUZZ_setRandomParameters(cctx, remaining, producer);
+                            FUZZ_copyFormatBit(cctx, dctx);
                             /* Always use the same maxBlockSize */
                             FUZZ_ZASSERT(ZSTD_CCtx_setParameter(cctx, ZSTD_c_maxBlockSize, maxBlockSize));
                         }

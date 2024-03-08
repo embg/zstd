@@ -61,6 +61,7 @@ static size_t roundTripTest(void *result, size_t resultCapacity,
     if (FUZZ_dataProducer_uint32Range(producer, 0, 1)) {
         size_t const remainingBytes = FUZZ_dataProducer_remainingBytes(producer);
         FUZZ_setRandomParameters(cctx, srcSize, producer);
+        FUZZ_copyFormatBit(cctx, dctx);
         cSize = ZSTD_compress2(cctx, compressed, compressedCapacity, src, srcSize);
         FUZZ_ZASSERT(cSize);
         FUZZ_ZASSERT(ZSTD_CCtx_getParameter(cctx, ZSTD_c_targetCBlockSize, &targetCBlockSize));
@@ -71,6 +72,7 @@ static size_t roundTripTest(void *result, size_t resultCapacity,
             XXH64_hash_t const hash0 = XXH64(compressed, cSize, 0);
             FUZZ_dataProducer_rollBack(producer, remainingBytes);
             FUZZ_setRandomParameters(cctx, srcSize, producer);
+            FUZZ_copyFormatBit(cctx, dctx);
             cSize = ZSTD_compress2(cctx, compressed, compressedCapacity, src, srcSize);
             FUZZ_ASSERT(cSize == cSize0);
             FUZZ_ASSERT(XXH64(compressed, cSize, 0) == hash0);
