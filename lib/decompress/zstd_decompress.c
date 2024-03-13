@@ -171,6 +171,13 @@ static const ZSTD_DDict* ZSTD_DDictHashSet_getDDict(ZSTD_DDictHashSet* hashSet, 
     return hashSet->ddictPtrTable[idx];
 }
 
+static void prettyPrintBlock(blockProperties_t* block) {
+}
+
+#include <stdio.h>
+static void prettyPrintBytes(const void* src, size_t srcSize) {
+}
+
 /* Allocates space for and returns a ddict hash set
  * The hash set's ZSTD_DDict* table has all values automatically set to NULL to begin with.
  * Returns NULL if allocation failed.
@@ -908,6 +915,7 @@ static size_t ZSTD_setRleBlock(void* dst, size_t dstCapacity,
                                BYTE b,
                                size_t regenSize)
 {
+    DEBUGLOG(5, "ZSTD_setRleBlock (dstCapacity:%zu, regenSize:%zu)", dstCapacity, regenSize);
     RETURN_ERROR_IF(regenSize > dstCapacity, dstSize_tooSmall, "");
     if (dst == NULL) {
         if (regenSize == 0) return 0;
@@ -959,8 +967,10 @@ static size_t ZSTD_decompressFrame(ZSTD_DCtx* dctx,
     BYTE* op = ostart;
     size_t remainingSrcSize = *srcSizePtr;
 
-    DEBUGLOG(4, "ZSTD_decompressFrame (srcSize:%i)", (int)*srcSizePtr);
-
+    DEBUGLOG(4, "ZSTD_decompressFrame (srcSize:%zu)", *srcSizePtr);
+    if (*srcSizePtr < 20) {
+    prettyPrintBytes(*srcPtr, *srcSizePtr);
+    }
     /* check */
     RETURN_ERROR_IF(
         remainingSrcSize < ZSTD_FRAMEHEADERSIZE_MIN(dctx->format)+ZSTD_blockHeaderSize,
@@ -1020,6 +1030,7 @@ static size_t ZSTD_decompressFrame(ZSTD_DCtx* dctx,
             decodedSize = ZSTD_copyRawBlock(op, (size_t)(oend-op), ip, cBlockSize);
             break;
         case bt_rle :
+            prettyPrintBlock(&blockProperties);
             decodedSize = ZSTD_setRleBlock(op, (size_t)(oBlockEnd-op), *ip, blockProperties.origSize);
             break;
         case bt_reserved :
@@ -1073,10 +1084,11 @@ size_t ZSTD_decompressMultiFrame(ZSTD_DCtx* dctx,
 {
     void* const dststart = dst;
     int moreThan1Frame = 0;
-
     DEBUGLOG(5, "ZSTD_decompressMultiFrame");
     assert(dict==NULL || ddict==NULL);  /* either dict or ddict set, not both */
-
+    if (srcSize < 20) {
+    prettyPrintBytes(src, srcSize);
+    }
     if (ddict) {
         dict = ZSTD_DDict_dictContent(ddict);
         dictSize = ZSTD_DDict_dictSize(ddict);
@@ -1085,7 +1097,7 @@ size_t ZSTD_decompressMultiFrame(ZSTD_DCtx* dctx,
     while (srcSize >= ZSTD_startingInputLength(dctx->format)) {
 
 #if defined(ZSTD_LEGACY_SUPPORT) && (ZSTD_LEGACY_SUPPORT >= 1)
-        if (ZSTD_isLegacy(src, srcSize)) {
+        if (ZSTD_isLegacy(src, srcSize) && dctx->format == ZSTD_f_zstd1) {
             size_t decodedSize;
             size_t const frameSize = ZSTD_findFrameCompressedSizeLegacy(src, srcSize);
             if (ZSTD_isError(frameSize)) return frameSize;
@@ -1114,8 +1126,7 @@ size_t ZSTD_decompressMultiFrame(ZSTD_DCtx* dctx,
             continue;
         }
 #endif
-
-        if (srcSize >= 4) {
+        if (srcSize >= 4 && dctx->format == ZSTD_f_zstd1) {
             U32 const magicNumber = MEM_readLE32(src);
             DEBUGLOG(5, "reading magic number %08X", (unsigned)magicNumber);
             if ((magicNumber & ZSTD_MAGIC_SKIPPABLE_MASK) == ZSTD_MAGIC_SKIPPABLE_START) {
@@ -1138,8 +1149,8 @@ size_t ZSTD_decompressMultiFrame(ZSTD_DCtx* dctx,
             FORWARD_IF_ERROR(ZSTD_decompressBegin_usingDict(dctx, dict, dictSize), "");
         }
         ZSTD_checkContinuity(dctx, dst, dstCapacity);
-
-        {   const size_t res = ZSTD_decompressFrame(dctx, dst, dstCapacity,
+        {   prettyPrintBytes(src, srcSize);
+            const size_t res = ZSTD_decompressFrame(dctx, dst, dstCapacity,
                                                     &src, &srcSize);
             RETURN_ERROR_IF(
                 (ZSTD_getErrorCode(res) == ZSTD_error_prefix_unknown)
@@ -1412,6 +1423,7 @@ size_t ZSTD_decompressContinue(ZSTD_DCtx* dctx, void* dst, size_t dstCapacity, c
     case ZSTDds_decodeSkippableHeader:
         assert(src != NULL);
         assert(srcSize <= ZSTD_SKIPPABLEHEADERSIZE);
+        assert(dctx->format != ZSTD_f_zstd1_magicless);
         ZSTD_memcpy(dctx->headerBuffer + (ZSTD_SKIPPABLEHEADERSIZE - srcSize), src, srcSize);   /* complete skippable header */
         dctx->expected = MEM_readLE32(dctx->headerBuffer + ZSTD_FRAMEIDSIZE);   /* note : dctx->expected can grow seriously large, beyond local buffer size */
         dctx->stage = ZSTDds_skipFrame;
@@ -2156,6 +2168,7 @@ size_t ZSTD_decompressStream(ZSTD_DStream* zds, ZSTD_outBuffer* output, ZSTD_inB
 #endif
                     return hSize;   /* error */
                 }
+                DEBUGLOG(5, "hSize: %zu", hSize);
                 if (hSize != 0) {   /* need more input */
                     size_t const toLoad = hSize - zds->lhSize;   /* if hSize!=0, hSize > zds->lhSize */
                     size_t const remainingInput = (size_t)(iend-ip);
@@ -2179,7 +2192,7 @@ size_t ZSTD_decompressStream(ZSTD_DStream* zds, ZSTD_outBuffer* output, ZSTD_inB
             }   }
 
             /* check for single-pass mode opportunity */
-            if (zds->fParams.frameContentSize != ZSTD_CONTENTSIZE_UNKNOWN
+            if (0 && zds->fParams.frameContentSize != ZSTD_CONTENTSIZE_UNKNOWN
                 && zds->fParams.frameType != ZSTD_skippableFrame
                 && (U64)(size_t)(oend-op) >= zds->fParams.frameContentSize) {
                 size_t const cSize = ZSTD_findFrameCompressedSize_advanced(istart, (size_t)(iend-istart), zds->format);
@@ -2207,9 +2220,11 @@ size_t ZSTD_decompressStream(ZSTD_DStream* zds, ZSTD_outBuffer* output, ZSTD_inB
 
             /* Consume header (see ZSTDds_decodeFrameHeader) */
             DEBUGLOG(4, "Consume header");
+            //@nocommit HERE
             FORWARD_IF_ERROR(ZSTD_decompressBegin_usingDDict(zds, ZSTD_getDDict(zds)), "");
 
-            if ((MEM_readLE32(zds->headerBuffer) & ZSTD_MAGIC_SKIPPABLE_MASK) == ZSTD_MAGIC_SKIPPABLE_START) {  /* skippable frame */
+            if ((MEM_readLE32(zds->headerBuffer) & ZSTD_MAGIC_SKIPPABLE_MASK) == ZSTD_MAGIC_SKIPPABLE_START
+                && zds->format == ZSTD_f_zstd1) {  /* skippable frame */
                 zds->expected = MEM_readLE32(zds->headerBuffer + ZSTD_FRAMEIDSIZE);
                 zds->stage = ZSTDds_skipFrame;
             } else {
