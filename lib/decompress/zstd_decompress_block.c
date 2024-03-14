@@ -63,7 +63,6 @@ static size_t ZSTD_blockSizeMax(ZSTD_DCtx const* dctx)
 size_t ZSTD_getcBlockSize(const void* src, size_t srcSize,
                           blockProperties_t* bpPtr)
 {
-    DEBUGLOG(5, "ZSTD_getcBlockSize (srcSize:%zu)", srcSize);
     RETURN_ERROR_IF(srcSize < ZSTD_blockHeaderSize, srcSize_wrong, "");
 
     {   U32 const cBlockHeader = MEM_readLE24(src);

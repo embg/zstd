@@ -125,3 +125,21 @@ The total `Block_Content` is `5` bytes, and `Last_Table_Offset` is `2`.
 See the compressor workaround code:
 
 https://github.com/facebook/zstd/blob/8814aa5bfa74f05a86e55e9d508da177a893ceeb/lib/compress/zstd_compress.c#L2667-L2682
+
+Magicless format
+----------------------
+
+**Last affected version**: v1.5.5
+
+**Affected decompressor component(s)**: Library & CLI
+
+**Produced by the reference compressor**: Yes (example: https://gist.github.com/embg/9940726094f4cf2cef162cffe9319232)
+
+**Example Frame**: `27 B5 2F FD 24 00 01 00 00 99 E9 D8 51`
+
+v1.5.6 fixes several bugs in which the magicless-format decoder rejects valid frames.
+These include but are not limited to:
+* Valid frames that happen to begin with a legacy magic number (little-endian)
+* Valid frames that happen to begin with a skippable magic number (little-endian)
+
+If you are affected by this issue and cannot update to v1.5.6 or later, there is a workaround to recover affected data. Simply prepend the ZSTD magic number `0xFD2FB528` (little-endian) to your data and decompress using the standard-format decoder.
